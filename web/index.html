@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<title>buddhism</title>
+	<script src="js/vue.js"></script>
+	<script src="js/axios.min.js"></script>
+	<script src="js/lodash.min.js"></script>
+	<script src="js/polyfill.min.js"></script>
+	<script src="js/bootstrap-vue.js"></script>
+	<script src="js/globalVariable.js"></script>
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/bootstrap-vue.css">
+	<link rel="stylesheet" href="bootstrap-icons-1.5.0/bootstrap-icons.css">
+</head>
+<body>
+	<div id="app">
+		<div class="container-fluid mt-4">
+			<div class="row">
+				<div class="col-7 col-sm-6 col-xl-4">
+					<h1 class="h1">會員 <a href="#" class="btn btn-primary" @click.prevent="populateMemberToAdd()">新 增</a></h1>
+					<b-alert :show="loading" variant="info">載入中...</b-alert>
+					<div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
+						<b-input-group prepend="過濾會員編號">
+							<b-form-input v-model="filter_name"></b-form-input>
+							<b-input-group-append>
+								<b-btn size="sm" text="Button" variant="info" @click.prevent="filter_name=''">清除</b-btn>
+							</b-input-group-append>
+						</b-input-group>
+						<b-input-group prepend="每頁幾筆"><b-form-input v-model="countOfPage"></b-form-input></b-input-group>
+					</div>
+					<div>
+						<nav aria-label="...">
+							<ul class="pagination">
+								<li class="page-item" v-bind:class="{'disabled': (currPage === 1)}" 
+									@click.prevent="setPage(currPage-1)">
+									<a class="page-link" href="#">上一頁</a>
+								</li>
+								<li class="page-item" v-for="n in totalPage"
+									v-bind:class="{'active': (currPage === (n))}" 
+									@click.prevent="setPage(n)">
+									<a href="#"class="page-link" >{{n}}</a>
+								</li>
+								<li class="page-item" v-bind:class="{'disabled': (currPage === totalPage)}" 
+									@click.prevent="setPage(currPage+1)">
+									<a href="#" class="page-link" >下一頁</a>
+								</li>
+							</ul>
+						</nav>
+					</div>
+					<div v-for="(member, index) in filteredRows.slice(pageStart, pageStart + countOfPage) " :key="member.tid">
+						<b-card >
+							<!--<b-link to="#" @click.prevent="populateMemberDetail()">-->
+								<h4>
+									<a :href="'memberinfo.html?m_num=' + member.m_num" target="_blank">{{ member.m_num }}</a>
+									{{ member.m_name }}
+								</h4>
+							<!--</b-link>-->
+							<ul class="list-group list-group-flush">
+								<li class="list-group-item">電話 {{member.m_tel}}</li>
+								<li class="list-group-item">地址 {{member.m_addr}}</li>
+								<li class="list-group-item">參加項目
+									<b-badge pill :variant="member.m_zhangqi === '0' ? 'dark':'success'" :style="{ cursor: 'pointer'}"
+									  	@click.prevent="popzhangqiDetail(member)">消災祈福</b-badge>
+									<b-badge pill :variant="member.m_chaojiangeren === '0' ? 'dark':'success'" :style="{ cursor: 'pointer'}"
+										@click.prevent="popchaojiangerenDetail(member)">超薦個人</b-badge>
+									<b-badge pill :variant="member.m_chaojianzuxian === '0' ? 'dark':'success'" :style="{ cursor: 'pointer'}"
+										@click.prevent="popchaojianzuxianDetail(member)">超薦祖先</b-badge>
+									<b-badge pill :variant="member.m_dijizhu === '0' ? 'dark':'success'" :style="{ cursor: 'pointer'}"
+										@click.prevent="popdijizhuDetail(member)">地基主</b-badge>
+									<b-badge pill :variant="member.m_yingling === '0' ? 'dark':'success'" :style="{ cursor: 'pointer'}"
+										@click.prevent="popyinglingDetail(member)">嬰靈</b-badge>
+									<b-badge pill :variant="member.m_dongwuling === '0' ? 'dark':'success'" :style="{ cursor: 'pointer'}"
+									  	@click.prevent="popdongwulingDetail(member)">動物靈</b-badge>
+								</li>
+							</ul>
+							<ul class="nav nav-pills nav-justified">
+								<a href="#" class="nav-item nav-link active m-2" 
+									@click.prevent="populateMemberToEdit(member)">修 改</a>
+								<a href="#" class="nav-item nav-link active m-2"
+									@click.prevent="populateMemberToDelete(member)">刪 除</a>
+								<!--<a href="#" class="nav-item nav-link active m-2"
+									@click.prevent="populateMemberDetail()">參加明細</a>-->
+							</ul>
+						</b-card>
+					</div>
+					<!-- <b-card :title="(model.tid ? 'Edit Member ID#' + model.tid : 'New Member')"> -->
+				</div> <!--col -->
+				<div class="col-5 col-sm-6 col-xl-5">
+					<div role="tablist">
+						<!--<b-card no-body class="mb-1">
+							<b-card-header header-tag="header" class="p-1" role="tab">
+							<b-btn block href="#" v-b-toggle.accordion1 variant="info">會員個人項目列印</b-btn>
+							</b-card-header>
+							<b-collapse id="accordion1" visible accordion="my-accordion" role="tabpanel">
+							<b-card-body>
+								<p class="card-text"><a href="memberinfo.html" target="_blank">會員基本資料</a></p>
+								<p class="card-text"><a href="zhangqiinfo.html" target="_blank">會員消災祈福</a></p>
+								<p class="card-text"><a href="chaojiangereninfo.html" target="_blank">會員超薦個人冤親</a></p>
+								<p class="card-text"><a href="chaojianzuxianinfo.html" target="_blank">會員超薦祖先</a></p>
+								<p class="card-text"><a href="yinglinginfo.html" target="_blank">會員嬰靈</a></p>
+								<p class="card-text"><a href="dijizhuinfo.html" target="_blank">會員地基主</a></p>
+								<p class="card-text"><a href="dongwulinginfo.html" target="_blank">會員動物靈</a></p>
+							</b-card-body>
+							</b-collapse>
+						</b-card>-->
+						<b-card no-body class="mb-1">
+							<b-card-header header-tag="header" class="p-1" role="tab">
+							<b-btn block href="#" v-b-toggle.accordion1 variant="info">會員查詢</b-btn>
+							</b-card-header>
+							<b-collapse id="accordion1" visible accordion="my-accordion" role="tabpanel">
+							<b-card-body>
+								<p class="card-text"><a href="membersearchall.html" target="_blank">全面查詢</a></p>
+							</b-card-body>
+							</b-collapse>
+						</b-card>
+						<b-card no-body class="mb-1">
+							<b-card-header header-tag="header" class="p-1" role="tab">
+							<b-btn block href="#" v-b-toggle.accordion2 variant="info">所有項目列印</b-btn>
+							</b-card-header>
+							<b-collapse id="accordion2" accordion="my-accordion" role="tabpanel">
+							<b-card-body>
+								<p class="card-text"><a href="memberinfoall.html" target="_blank">所有會員基本資料</a></p>
+								<p class="card-text"><a href="zhangqiinfoall.html" target="_blank">所有會員消災祈福</a></p>
+								<p class="card-text"><a href="chaojiangereninfoall.html" target="_blank">所有會員超薦個人冤親</a></p>
+								<p class="card-text"><a href="chaojianzuxianinfoall.html" target="_blank">所有會員超薦祖先</a></p>
+								<p class="card-text"><a href="dijizhuinfoall.html" target="_blank">所有會員地基主</a></p>
+								<p class="card-text"><a href="yinglinginfoall.html" target="_blank">所有會員嬰靈</a></p>
+								<p class="card-text"><a href="dongwulinginfoall.html" target="_blank">所有會員動物靈</a></p>
+								</p>
+							</b-card-body>
+							</b-collapse>
+						</b-card>
+					</div>
+				</div>
+			</div> <!--row -->
+		</div> <!-- container-fluid -->
+
+		<div>
+			<b-modal ref="memberAddRef" hide-footer title="新增">
+				<form @submit.prevent="saveM">
+					<b-form-group label="會員編號">
+						<b-form-input type="text" v-model="model.m_num"></b-form-input>
+					</b-form-group>
+					<b-form-group label="姓名">
+						<b-form-input type="text" v-model="model.m_name"></b-form-input>
+					</b-form-group>
+					<b-form-group label="電話">
+						<b-form-input type="text" v-model="model.m_tel"></b-form-input>
+					</b-form-group>
+					<b-form-group label="地址">
+						<b-form-input type="text" v-model="model.m_addr"></b-form-input>
+					</b-form-group>
+					<div>
+						<b-btn type="submit" variant="success">存檔</b-btn>
+					</div>
+				</form>
+			</b-modal>
+		</div>
+		<div>
+			<b-modal ref="memberModalRef" hide-footer title="修改">
+				<form @submit.prevent="saveM">
+					<b-form-group label="會員編號">
+						<b-form-input type="text" v-model="model.m_num"></b-form-input>
+					</b-form-group>
+					<b-form-group label="姓名">
+						<b-form-input type="text" v-model="model.m_name"></b-form-input>
+					</b-form-group>
+					<b-form-group label="電話">
+						<b-form-input type="text" v-model="model.m_tel"></b-form-input>
+					</b-form-group>
+					<b-form-group label="地址">
+						<b-form-input type="text" v-model="model.m_addr"></b-form-input>
+					</b-form-group>
+					</b-form-group>
+						<b-form-checkbox id="ckbox_zhangqi" v-model="model.m_zhangqi" 
+							value="1" unchecked-value="0">消災祈福
+						</b-form-checkbox>
+						<b-form-checkbox id="ckbox_chaojiangeren" v-model="model.m_chaojiangeren" 
+							value="1" unchecked-value="0">超薦個人
+						</b-form-checkbox>
+						<b-form-checkbox id="ckbox_chaojianzuxian" v-model="model.m_chaojianzuxian" 
+							value="1" unchecked-value="0">超薦祖先
+						</b-form-checkbox>
+						<b-form-checkbox id="ckbox_dijizhu" v-model="model.m_dijizhu" 
+							value="1" unchecked-value="0">地基主
+						</b-form-checkbox>
+						<b-form-checkbox id="ckbox_yingling" v-model="model.m_yingling" 
+							value="1" unchecked-value="0">嬰靈
+						</b-form-checkbox>
+						<b-form-checkbox id="ckbox_dongwuling" v-model="model.m_dongwuling" 
+							value="1" unchecked-value="0">動物靈
+						</b-form-checkbox>
+					</b-form-group>
+					<div>
+						<b-btn type="submit" variant="success">存檔</b-btn>
+					</div>
+				</form>
+			</b-modal>
+		</div>
+		<div>
+			<b-modal ref="memberDeleteRef" hide-footer title="刪除">
+				<div class="d-block text-center">
+					<b-alert variant="danger" show><h3>確定刪除嗎？</h3></b-alert>
+				</div>
+				<form @submit.prevent="deleteM">
+					<b-form-group label="會員編號">
+							<b-form-input type="text" v-model="model.m_num" :readonly="true"></b-form-input>
+					</b-form-group>
+					<b-form-group label="姓名">
+							<b-form-input type="text" v-model="model.m_name" :readonly="true"></b-form-input>
+					</b-form-group>
+					<div>
+							<b-btn type="submit" variant="danger">刪除</b-btn>
+					</div>
+				</form>
+			</b-modal>
+		</div>
+		<div>
+			<b-modal ref="zhangqiModalRef" hide-footer title="消災祈福"> <!-- ok-only ok-title="關閉" -->
+				<b-container fluid>
+					<b-row>
+						<b-col><a href="#" class="btn btn-primary mt1" @click.prevent="zhangqiToAdd()">新 增</a></b-col>
+						<b-col>戶主編號<b-form-input type="text" v-model="model_zhangqi.m_num" :readonly="true"></b-form-input></b-col>
+					</b-row>
+					<b-row>
+						<b-col cols="4">
+							<b-row v-for="zhangqi in zhangqis" :key="zhangqi.tid">
+								<b-col>
+									<a href="#" class="m-2" @click.prevent="zhangqitoEdit(zhangqi)">{{zhangqi.name}}</a> 
+								</b-col>
+							</b-row>
+						</b-col>
+						<b-col>
+							<form @submit.prevent="savezhangqi">
+								<b-form-group label="姓名">
+									<b-form-input v-model="model_zhangqi.name" :disabled='iszhangqiAddOrModify'></b-form-input>
+								</b-form-group>
+								<div>
+									<b-button type="submit" variant="success" :disabled='iszhangqiSaveDisabled'>存 檔</b-button>
+									<a href="#" class="btn btn-danger mt1" @click.prevent="zhangqiToDelete()"
+									  :class="{disabled: iszhangqiDeleteDisabled}">刪 除</a></b-col>
+								</div>
+							</form>
+						</b-col>	
+					</b-row>
+				</b-container>
+			</b-modal>
+		</div> <!-- zhangqiModalRef -->
+		<div>
+			<b-modal ref="chaojiangerenModalRef" hide-footer title="超薦個人"> <!-- ok-only ok-title="關閉" -->
+				<b-container fluid>
+					<b-row>
+						<b-col>
+							<a href="#" class="btn btn-primary mt1" @click.prevent="chaojiangerenToAdd()">新 增</a>
+							<a href="#" class="btn btn-primary mt1" @click.prevent="chaojiangerenCopyFromzhangqi()" v-b-tooltip.hover title="從消災祈福">複 製</a>
+						</b-col>
+						<b-col>戶主編號<b-form-input type="text" v-model="model_chaojiangeren.m_num" :readonly="true"></b-form-input></b-col>
+					</b-row>
+					<b-row>
+						<b-col cols="4">
+							<b-row v-for="chaojiangeren in chaojiangerens" :key="chaojiangeren.tid">
+								<b-col>
+									<a href="#" class="m-2" @click.prevent="chaojiangerentoEdit(chaojiangeren)">{{chaojiangeren.name}}</a> 
+								</b-col>
+							</b-row>
+						</b-col>
+						<b-col>
+							<form @submit.prevent="savechaojiangeren">
+								<b-form-group label="姓名">
+									<b-form-input v-model="model_chaojiangeren.name" :disabled='ischaojiangerenAddOrModify'></b-form-input>
+								</b-form-group>
+								<b-form-group> 
+									<label class="form-label">地址</label> 
+									<a href="#" @click.prevent="copyMemberAddress(model_chaojiangeren)" v-show="!ischaojiangerenAddOrModify" v-b-tooltip.hover title="從戶主地址複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-textarea :rows="3" v-model="model_chaojiangeren.addr" :disabled='ischaojiangerenAddOrModify'></b-form-textarea>
+								</b-form-group>
+								<div>
+									<b-button type="submit" variant="success" :disabled='ischaojiangerenSaveDisabled'>存 檔</b-button>
+									<a href="#" class="btn btn-danger mt1" @click.prevent="chaojiangerenToDelete()"
+									  :class="{disabled: ischaojiangerenDeleteDisabled}">刪 除</a></b-col>
+								</div>
+							</form>
+						</b-col>	
+					</b-row>
+				</b-container>
+			</b-modal>
+		</div><!-- chaojiangerenModalRef -->
+		<div>
+			<b-modal ref="chaojianzuxianModalRef" hide-footer title="超薦袓先"> <!-- ok-only ok-title="關閉" -->
+				<b-container fluid>
+					<b-row>
+						<b-col><a href="#" class="btn btn-primary mt1" @click.prevent="chaojianzuxianToAdd()">新 增</a></b-col>
+						<b-col>戶主編號<b-form-input type="text" v-model="model_chaojianzuxian.m_num" :readonly="true"></b-form-input></b-col>
+					</b-row>
+					<b-row>
+						<b-col cols="5">
+							<b-row v-for="chaojianzuxian in chaojianzuxians" :key="chaojianzuxian.tid">
+								<b-col>
+									<a href="#" class="m-2" @click.prevent="chaojianzuxiantoEdit(chaojianzuxian)">{{chaojianzuxian.zuxian}}</a> 
+								</b-col>
+							</b-row>
+						</b-col>
+						<b-col>
+							<form @submit.prevent="savechaojianzuxian">
+								<b-form-group label="袓先">
+									<b-form-input v-model="model_chaojianzuxian.zuxian" :disabled='ischaojianzuxianAddOrModify'></b-form-input>
+								</b-form-group>
+								<b-form-group>
+									<label class="form-label">姓名</label> 
+									<a href="#" @click.prevent="copyMemberName(model_chaojianzuxian)" v-show="!ischaojianzuxianAddOrModify" v-b-tooltip.hover title="從戶主姓名複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-input v-model="model_chaojianzuxian.name" :disabled='ischaojianzuxianAddOrModify'></b-form-input>
+								</b-form-group>
+								<b-form-group>
+									<label class="form-label">地址</label> 
+									<a href="#" @click.prevent="copyMemberAddress(model_chaojianzuxian)" v-show="!ischaojianzuxianAddOrModify" v-b-tooltip.hover title="從戶主地址複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-textarea :rows="3" v-model="model_chaojianzuxian.addr" :disabled='ischaojianzuxianAddOrModify'></b-form-textarea>
+								</b-form-group>
+								<b-form-checkbox v-model="model_chaojianzuxian.newdead" value="1" unchecked-value="0">新亡</b-form-checkbox>	
+								<div>
+									<b-button type="submit" variant="success" :disabled='ischaojianzuxianSaveDisabled'>存 檔</b-button>
+									<a href="#" class="btn btn-danger mt1" @click.prevent="chaojianzuxianToDelete()"
+									  :class="{disabled: ischaojianzuxianDeleteDisabled}">刪 除</a></b-col>
+								</div>
+							</form>
+						</b-col>	
+					</b-row>
+				</b-container>
+			</b-modal>
+		</div><!-- chaojianzuxianModalRef -->
+		<div>
+			<b-modal ref="dijizhuModalRef" hide-footer title="地基主"> <!-- ok-only ok-title="關閉" -->
+				<b-container fluid>
+					<b-row>
+						<b-col><a href="#" class="btn btn-primary mt1" @click.prevent="dijizhuToAdd()">新 增</a></b-col>
+						<b-col>戶主編號<b-form-input type="text" v-model="model_dijizhu.m_num" :readonly="true"></b-form-input></b-col>
+					</b-row>
+					<b-row>
+						<b-col cols="4">
+							<b-row v-for="dijizhu in dijizhus" :key="dijizhu.tid">
+								<b-col>
+									<a href="#" class="m-2" @click.prevent="dijizhutoEdit(dijizhu)">{{dijizhu.name}}</a> 
+								</b-col>
+							</b-row>
+						</b-col>
+						<b-col>
+							<form @submit.prevent="savedijizhu">
+								<b-form-group>
+									<label class="form-label">姓名</label> 
+									<a href="#" @click.prevent="copyMemberName(model_dijizhu)" v-show="!isdijizhuAddOrModify" v-b-tooltip.hover title="從戶主姓名複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-input v-model="model_dijizhu.name" :disabled='isdijizhuAddOrModify'></b-form-input>
+								</b-form-group>
+								<b-form-group>
+									<label class="form-label">地址</label> 
+									<a href="#" @click.prevent="copyMemberAddress(model_dijizhu)" v-show="!isdijizhuAddOrModify" v-b-tooltip.hover title="從戶主地址複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-textarea :rows="3" v-model="model_dijizhu.addr" :disabled='isdijizhuAddOrModify'></b-form-textarea>
+								</b-form-group>
+								<div>
+									<b-button type="submit" variant="success" :disabled='isdijizhuSaveDisabled'>存 檔</b-button>
+									<a href="#" class="btn btn-danger mt1" @click.prevent="dijizhuToDelete()"
+									  :class="{disabled: isdijizhuDeleteDisabled}">刪 除</a></b-col>
+								</div>
+							</form>
+						</b-col>	
+					</b-row>
+				</b-container>
+			</b-modal>
+		</div><!-- dijizhuModalRef -->
+		<div>
+			<b-modal ref="yinglingModalRef" hide-footer title="嬰靈"> <!-- ok-only ok-title="關閉" -->
+				<b-container fluid>
+					<b-row>
+						<b-col><a href="#" class="btn btn-primary mt1" @click.prevent="yinglingToAdd()">新 增</a></b-col>
+						<b-col>戶主編號<b-form-input type="text" v-model="model_yingling.m_num" :readonly="true"></b-form-input></b-col>
+					</b-row>
+					<b-row>
+						<b-col cols="4">
+							<b-row v-for="yingling in yinglings" :key="yingling.tid">
+								<b-col>
+									<a href="#" class="m-2" @click.prevent="yinglingtoEdit(yingling)">{{yingling.name}}</a> 
+								</b-col>
+							</b-row>
+						</b-col>
+						<b-col>
+							<form @submit.prevent="saveyingling">
+								<b-form-group>
+									<label class="form-label">姓名</label> 
+									<a href="#" @click.prevent="copyMemberName(model_yingling)" v-show="!isyinglingAddOrModify" v-b-tooltip.hover title="從戶主姓名複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-input v-model="model_yingling.name" :disabled='isyinglingAddOrModify'></b-form-input>
+								</b-form-group>
+								<b-form-group>
+									<label class="form-label">地址</label> 
+									<a href="#" @click.prevent="copyMemberAddress(model_yingling)" v-show="!isyinglingAddOrModify" v-b-tooltip.hover title="從戶主地址複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-textarea :rows="3" v-model="model_yingling.addr" :disabled='isyinglingAddOrModify'></b-form-textarea>
+								</b-form-group>
+								<div>
+									<b-button type="submit" variant="success" :disabled='isyinglingSaveDisabled'>存 檔</b-button>
+									<a href="#" class="btn btn-danger mt1" @click.prevent="yinglingToDelete()"
+									  :class="{disabled: isyinglingDeleteDisabled}">刪 除</a></b-col>
+								</div>
+							</form>
+						</b-col>	
+					</b-row>
+				</b-container>
+			</b-modal>
+		</div><!-- yinglingModalRef -->
+		<div>
+			<b-modal ref="dongwulingModalRef" hide-footer title="動物靈"> <!-- ok-only ok-title="關閉" -->
+				<b-container fluid>
+					<b-row>
+						<b-col><a href="#" class="btn btn-primary mt1" @click.prevent="dongwulingToAdd()">新 增</a></b-col>
+						<b-col>戶主編號<b-form-input type="text" v-model="model_dongwuling.m_num" :readonly="true"></b-form-input></b-col>
+					</b-row>
+					<b-row>
+						<b-col cols="4">
+							<b-row v-for="dongwuling in dongwulings" :key="dongwuling.tid">
+								<b-col>
+									<a href="#" class="m-2" @click.prevent="dongwulingtoEdit(dongwuling)">{{dongwuling.name}}</a> 
+								</b-col>
+							</b-row>
+						</b-col>
+						<b-col>
+							<form @submit.prevent="savedongwuling">
+								<b-form-group>
+									<label class="form-label">姓名</label> 
+									<a href="#" @click.prevent="copyMemberName(model_dongwuling)" v-show="!isdongwulingAddOrModify" v-b-tooltip.hover title="從戶主姓名複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-input v-model="model_dongwuling.name" :disabled='isdongwulingAddOrModify'></b-form-input>
+								</b-form-group>
+								<b-form-group>
+									<label class="form-label">地址</label> 
+									<a href="#" @click.prevent="copyMemberAddress(model_dongwuling)" v-show="!isdongwulingAddOrModify" v-b-tooltip.hover title="從戶主地址複製"><i class="bi bi-clipboard"></i></a>
+									<b-form-textarea :rows="3" v-model="model_dongwuling.addr" :disabled='isdongwulingAddOrModify'></b-form-textarea>
+								</b-form-group>
+								<div>
+									<b-button type="submit" variant="success" :disabled='isdongwulingSaveDisabled'>存 檔</b-button>
+									<a href="#" class="btn btn-danger mt1" @click.prevent="dongwulingToDelete()"
+									  :class="{disabled: isdongwulingDeleteDisabled}">刪 除</a></b-col>
+								</div>
+							</form>
+						</b-col>	
+					</b-row>
+				</b-container>
+			</b-modal>
+		</div><!-- dongwulingModalRef -->
+	</div> <!-- app -->
+</body>
+
+<script>
+	const client = axios.create({
+			baseURL: customBashUrl,
+			json: true
+	});
+	
+	var app = new Vue({
+			el: '#app',
+			data: {
+					loading: false,
+					members: [],
+					model: {},
+					copyMemerName: '',
+					copyMemerAddr: '',
+					zhangqi_m_num: '',
+					zhangqis: [],
+					model_zhangqi: {},
+					chaojiangeren_m_num: '',
+					chaojiangeren_m_addr: '',
+					chaojiangerens: [],
+					model_chaojiangeren: {},
+					chaojianzuxian_m_num: '',
+					chaojianzuxians: [],
+					model_chaojianzuxian: {},
+					yingling_m_num: '',
+					yinglings: [],
+					model_yingling: {},
+					dijizhu_m_num: '',
+					dijizhus: [],
+					model_dijizhu: {},
+					dongwuling_m_num: '',
+					dongwulings: [],
+					model_dongwuling: {},
+					countOfPage: 50,
+					currPage: 1,
+					filter_name: '',
+			},
+			ready: function() {
+					//this.getCustomers()
+			},
+			async created () {
+					this.refreshMembers()
+			},
+			methods: {
+					async refreshMembers () {
+							this.loading = true
+							this.members = await this.getMembers()
+							this.loading = false
+					},
+					async populateMemberToAdd () {
+							this.$refs.memberAddRef.show()
+					},
+					async populateMemberToEdit (member) {
+							this.model = Object.assign({}, member)
+							this.$refs.memberModalRef.show()
+					},
+					async saveM () {
+							this.model.m_diandeng = "0" //點燈強制0
+
+							if (this.model.tid) {
+									await this.updateMember(this.model.tid, this.model)
+									this.$refs.memberModalRef.hide()
+							} else {
+									//新增時，補上相對欄位預設值
+									this.model.m_zhangqi = "0" 
+									this.model.m_chaojiangeren = "0"
+									this.model.m_chaojianzuxian = "0"
+									this.model.m_yingling = "0"
+									this.model.m_dijizhu = "0"
+									this.model.m_dongwuling = "0"
+									rep = await this.createMember(this.model)
+									rep2 = await this.getMember(rep['New Row id'])
+									this.filter_name = rep2[0].m_num
+									this.$refs.memberAddRef.hide()
+							}
+							this.model = {} // reset form
+							await this.refreshMembers()
+					},
+					async populateMemberToDelete (member) {
+							this.model = Object.assign({}, member)
+							this.$refs.memberDeleteRef.show()
+					},
+					async deleteM () {
+							// if we are editing a post we deleted, remove it from the form
+							if (this.model.tid) {
+									await this.deleteMember(this.model.tid)
+							}
+							this.$refs.memberDeleteRef.hide()
+							this.model = {} // reset form
+							await this.refreshMembers()
+					},
+					async execute (method, resource, data) {
+							// inject the accessToken for each request
+							//let accessToken = await Vue.prototype.$auth.getAccessToken()
+							return client({
+									method,
+									url: resource,
+									data,
+									/*headers: {
+											Authorization: `Bearer ${accessToken}`
+									}*/
+							}).then(req => {
+									return req.data
+							})
+					},
+					getMembers () {
+							return this.execute('get', '/members')
+					},
+					getMember (id) {
+							return this.execute('get', `/members/id/${id}`)
+					},
+					createMember (data) {
+							return this.execute('post', '/members', data)
+					},
+					updateMember (id, data) {
+							return this.execute('put', `/members/${id}`, data)
+					},
+					deleteMember (id) {
+							return this.execute('delete', `/members/${id}`)
+					},
+					copyMemberName (m) {
+						this.$set(m, 'name', this.copyMemerName)
+					},
+					copyMemberAddress (m) {
+						this.$set(m, 'addr', this.copyMemerAddr)
+					},
+					setPage: function(idx){
+							if( idx <= 0 || idx > this.totalPage ){
+									return;
+							}
+							this.currPage = idx;
+					},
+					getzhangqis (id) {
+							return this.execute('get', `/zhangqis/mun/${id}`)
+					},
+					getzhangqi (id) {
+							return this.execute('get', `/zhangqis/id/${id}`)
+					},
+					createzhangqi (data) {
+							return this.execute('post', '/zhangqis', data)
+					},
+					updatezhangqi (id, data) {
+							return this.execute('put', `/zhangqis/${id}`, data)
+					},
+					deletezhangqi (id) {
+							return this.execute('delete', `/zhangqis/${id}`)
+					},
+					async refreshzhangqis (member_m_num) {
+						this.loading = true
+						this.zhangqis = await this.getzhangqis(member_m_num)
+						this.loading = false
+					},
+					async popzhangqiDetail (tmember) {
+						zhangqi_m_num = tmember.m_num,
+						this.refreshzhangqis(tmember.m_num)
+						this.model_zhangqi = {}
+						this.$refs.zhangqiModalRef.show()
+					},
+					async zhangqiToAdd () {
+						this.model_zhangqi = {}
+						this.model_zhangqi.m_num = zhangqi_m_num
+					},
+					async zhangqitoEdit (tzhangqi) {
+						rep = await this.getzhangqi(tzhangqi.tid)
+						this.model_zhangqi = Object.assign({}, rep[0])
+					},
+					async savezhangqi () {
+						if (this.model_zhangqi.tid) {
+							await this.updatezhangqi(this.model_zhangqi.tid, this.model_zhangqi)
+							//this.$refs.zhangqiModalRef.hide()
+							//this.model_zhangqi = {} // reset form
+						} else {
+							this.model_zhangqi.m_num = zhangqi_m_num
+							rep = await this.createzhangqi(this.model_zhangqi)
+							rep2 = await this.getzhangqi(rep['New Row id'])
+							this.model_zhangqi = Object.assign({}, rep2[0])
+							//this.$refs.memberAddRef.hide()
+						}
+						//this.model_zhangqi = {} // reset form
+						await this.refreshzhangqis(zhangqi_m_num)
+					},
+					async zhangqiToDelete () {
+						// if we are editing a post we deleted, remove it from the form
+						if (this.model_zhangqi.tid) {
+								await this.deletezhangqi(this.model_zhangqi.tid)
+						}
+						this.model_zhangqi = {} // reset form
+						await this.refreshzhangqis(zhangqi_m_num)
+					},
+					getchaojiangerens (id) {
+						return this.execute('get', `/chaojiangerens/mun/${id}`)
+					},
+					getchaojiangeren (id) {
+						return this.execute('get', `/chaojiangerens/id/${id}`)
+					},
+					createchaojiangeren (data) {
+						return this.execute('post', '/chaojiangerens', data)
+					},
+					updatechaojiangeren (id, data) {
+						return this.execute('put', `/chaojiangerens/${id}`, data)
+					},
+					deletechaojiangeren (id) {
+						return this.execute('delete', `/chaojiangerens/${id}`)
+					},
+					async refreshchaojiangerens (member_m_num) {
+							this.loading = true
+							this.chaojiangerens = await this.getchaojiangerens(member_m_num)
+							this.loading = false
+					},
+					async popchaojiangerenDetail (tmember) {
+						chaojiangeren_m_num = tmember.m_num
+						chaojiangeren_m_addr = tmember.m_addr
+						this.copyMemerAddr = tmember.m_addr
+						this.refreshchaojiangerens(tmember.m_num)
+						this.model_chaojiangeren = {}
+						this.$refs.chaojiangerenModalRef.show()
+					},
+					async chaojiangerenToAdd () {
+						this.model_chaojiangeren = {}
+						this.model_chaojiangeren.m_num = chaojiangeren_m_num
+					},
+					async chaojiangerenCopyFromzhangqi() {
+						await this.refreshzhangqis(chaojiangeren_m_num);
+						for(value of this.zhangqis) {
+							rep = await this.createchaojiangeren({
+								'm_num': chaojiangeren_m_num, 
+								'name': value.name, 
+								'addr': chaojiangeren_m_addr
+							})
+						};
+						await this.refreshchaojiangerens(chaojiangeren_m_num)
+					},
+					async chaojiangerentoEdit (tchaojiangeren) {
+						rep = await this.getchaojiangeren(tchaojiangeren.tid)
+						this.model_chaojiangeren = Object.assign({}, rep[0])
+					},
+					async savechaojiangeren () {
+						if (this.model_chaojiangeren.tid) {
+							await this.updatechaojiangeren(this.model_chaojiangeren.tid, this.model_chaojiangeren)
+						} else {
+							this.model_chaojiangeren.m_num = chaojiangeren_m_num
+							console.log(this.model_chaojiangeren);
+							rep = await this.createchaojiangeren(this.model_chaojiangeren)
+							rep2 = await this.getchaojiangeren(rep['New Row id'])
+							this.model_chaojiangeren = Object.assign({}, rep2[0])
+						}
+						await this.refreshchaojiangerens(chaojiangeren_m_num)
+					},
+					async chaojiangerenToDelete () {
+						// if we are editing a post we deleted, remove it from the form
+						if (this.model_chaojiangeren.tid) {
+								await this.deletechaojiangeren(this.model_chaojiangeren.tid)
+						}
+						this.model_chaojiangeren = {} // reset form
+						await this.refreshchaojiangerens(chaojiangeren_m_num)
+					},
+					getchaojianzuxians (id) {
+						return this.execute('get', `/chaojianzuxians/mun/${id}`)
+					},
+					getchaojianzuxian (id) {
+						return this.execute('get', `/chaojianzuxians/id/${id}`)
+					},
+					createchaojianzuxian (data) {
+						return this.execute('post', '/chaojianzuxians', data)
+					},
+					updatechaojianzuxian (id, data) {
+						return this.execute('put', `/chaojianzuxians/${id}`, data)
+					},
+					deletechaojianzuxian (id) {
+						return this.execute('delete', `/chaojianzuxians/${id}`)
+					},
+					async refreshchaojianzuxians (member_m_num) {
+						this.loading = true
+						this.chaojianzuxians = await this.getchaojianzuxians(member_m_num)
+						this.loading = false
+					},
+					async popchaojianzuxianDetail (tmember) {
+						chaojianzuxian_m_num = tmember.m_num
+						this.copyMemerName = tmember.m_name
+						this.copyMemerAddr = tmember.m_addr
+						this.refreshchaojianzuxians(tmember.m_num)
+						this.model_chaojianzuxian = {}
+						this.$refs.chaojianzuxianModalRef.show()
+					},
+					async chaojianzuxianToAdd () {
+						this.model_chaojianzuxian = {}
+						this.model_chaojianzuxian.m_num = chaojianzuxian_m_num
+					},
+					async chaojianzuxiantoEdit (tchaojianzuxian) {
+						rep = await this.getchaojianzuxian(tchaojianzuxian.tid)
+						this.model_chaojianzuxian = Object.assign({}, rep[0])
+					},
+					async savechaojianzuxian () {
+						if (this.model_chaojianzuxian.tid) {
+							await this.updatechaojianzuxian(this.model_chaojianzuxian.tid, this.model_chaojianzuxian)
+						} else {
+							this.model_chaojianzuxian.m_num = chaojianzuxian_m_num
+							rep = await this.createchaojianzuxian(this.model_chaojianzuxian)
+							rep2 = await this.getchaojianzuxian(rep['New Row id'])
+							this.model_chaojianzuxian = Object.assign({}, rep2[0])
+						}
+						await this.refreshchaojianzuxians(chaojianzuxian_m_num)
+					},
+					async chaojianzuxianToDelete () {
+						// if we are editing a post we deleted, remove it from the form
+						if (this.model_chaojianzuxian.tid) {
+								await this.deletechaojianzuxian(this.model_chaojianzuxian.tid)
+						}
+						this.model_chaojianzuxian = {} // reset form
+						await this.refreshchaojianzuxians(chaojianzuxian_m_num)
+					},
+					getyinglings (id) {
+						return this.execute('get', `/yinglings/mun/${id}`)
+					},
+					getyingling (id) {
+						return this.execute('get', `/yinglings/id/${id}`)
+					},
+					createyingling (data) {
+						return this.execute('post', '/yinglings', data)
+					},
+					updateyingling (id, data) {
+						return this.execute('put', `/yinglings/${id}`, data)
+					},
+					deleteyingling (id) {
+						return this.execute('delete', `/yinglings/${id}`)
+					},
+					async refreshyinglings (member_m_num) {
+						this.loading = true
+						this.yinglings = await this.getyinglings(member_m_num)
+						this.loading = false
+					},
+					async popyinglingDetail (tmember) {
+						yingling_m_num = tmember.m_num
+						this.copyMemerName = tmember.m_name
+						this.copyMemerAddr = tmember.m_addr
+						this.refreshyinglings(tmember.m_num)
+						this.model_yingling = {}
+						this.$refs.yinglingModalRef.show()
+					},
+					async yinglingToAdd () {
+						this.model_yingling = {}
+						this.model_yingling.m_num = yingling_m_num
+					},
+					async yinglingtoEdit (tyingling) {
+						rep = await this.getyingling(tyingling.tid)
+						this.model_yingling = Object.assign({}, rep[0])
+					},
+					async saveyingling () {
+						if (this.model_yingling.tid) {
+							await this.updateyingling(this.model_yingling.tid, this.model_yingling)
+						} else {
+							this.model_yingling.m_num = yingling_m_num
+							rep = await this.createyingling(this.model_yingling)
+							rep2 = await this.getyingling(rep['New Row id'])
+							this.model_yingling = Object.assign({}, rep2[0])
+						}
+						await this.refreshyinglings(yingling_m_num)
+					},
+					async yinglingToDelete () {
+						// if we are editing a post we deleted, remove it from the form
+						if (this.model_yingling.tid) {
+								await this.deleteyingling(this.model_yingling.tid)
+						}
+						this.model_yingling = {} // reset form
+						await this.refreshyinglings(yingling_m_num)
+					},
+					getdijizhus (id) {
+						return this.execute('get', `/dijizhus/mun/${id}`)
+					},
+					getdijizhu (id) {
+						return this.execute('get', `/dijizhus/id/${id}`)
+					},
+					createdijizhu (data) {
+						return this.execute('post', '/dijizhus', data)
+					},
+					updatedijizhu (id, data) {
+						return this.execute('put', `/dijizhus/${id}`, data)
+					},
+					deletedijizhu (id) {
+						return this.execute('delete', `/dijizhus/${id}`)
+					},
+					async refreshdijizhus (member_m_num) {
+						this.loading = true
+						this.dijizhus = await this.getdijizhus(member_m_num)
+						this.loading = false
+					},
+					async popdijizhuDetail (tmember) {
+						dijizhu_m_num = tmember.m_num
+						this.copyMemerName = tmember.m_name
+						this.copyMemerAddr = tmember.m_addr
+						this.refreshdijizhus(tmember.m_num)
+						this.model_dijizhu = {}
+						this.$refs.dijizhuModalRef.show()
+					},
+					async dijizhuToAdd () {
+						this.model_dijizhu = {}
+						this.model_dijizhu.m_num = dijizhu_m_num
+					},
+					async dijizhutoEdit (tdijizhu) {
+						rep = await this.getdijizhu(tdijizhu.tid)
+						this.model_dijizhu = Object.assign({}, rep[0])
+					},
+					async savedijizhu () {
+						if (this.model_dijizhu.tid) {
+							await this.updatedijizhu(this.model_dijizhu.tid, this.model_dijizhu)
+						} else {
+							this.model_dijizhu.m_num = dijizhu_m_num
+							rep = await this.createdijizhu(this.model_dijizhu)
+							rep2 = await this.getdijizhu(rep['New Row id'])
+							this.model_dijizhu = Object.assign({}, rep2[0])
+						}
+						await this.refreshdijizhus(dijizhu_m_num)
+					},
+					async dijizhuToDelete () {
+						// if we are editing a post we deleted, remove it from the form
+						if (this.model_dijizhu.tid) {
+								await this.deletedijizhu(this.model_dijizhu.tid)
+						}
+						this.model_dijizhu = {} // reset form
+						await this.refreshdijizhus(dijizhu_m_num)
+					},
+					getdongwulings (id) {
+						return this.execute('get', `/dongwulings/mun/${id}`)
+					},
+					getdongwuling (id) {
+						return this.execute('get', `/dongwulings/id/${id}`)
+					},
+					createdongwuling (data) {
+						return this.execute('post', '/dongwulings', data)
+					},
+					updatedongwuling (id, data) {
+						return this.execute('put', `/dongwulings/${id}`, data)
+					},
+					deletedongwuling (id) {
+						return this.execute('delete', `/dongwulings/${id}`)
+					},
+					async refreshdongwulings (member_m_num) {
+						this.loading = true
+						this.dongwulings = await this.getdongwulings(member_m_num)
+						this.loading = false
+					},
+					async popdongwulingDetail (tmember) {
+						dongwuling_m_num = tmember.m_num
+						this.copyMemerName = tmember.m_name
+						this.copyMemerAddr = tmember.m_addr
+						this.refreshdongwulings(tmember.m_num)
+						this.model_dongwuling = {}
+						this.$refs.dongwulingModalRef.show()
+					},
+					async dongwulingToAdd () {
+						this.model_dongwuling = {}
+						this.model_dongwuling.m_num = dongwuling_m_num
+					},
+					async dongwulingtoEdit (tdongwuling) {
+						rep = await this.getdongwuling(tdongwuling.tid)
+						this.model_dongwuling = Object.assign({}, rep[0])
+					},
+					async savedongwuling () {
+						if (this.model_dongwuling.tid) {
+							await this.updatedongwuling(this.model_dongwuling.tid, this.model_dongwuling)
+						} else {
+							this.model_dongwuling.m_num = dongwuling_m_num
+							rep = await this.createdongwuling(this.model_dongwuling)
+							rep2 = await this.getdongwuling(rep['New Row id'])
+							this.model_dongwuling = Object.assign({}, rep2[0])
+						}
+						await this.refreshdongwulings(dongwuling_m_num)
+					},
+					async dongwulingToDelete () {
+						// if we are editing a post we deleted, remove it from the form
+						if (this.model_dongwuling.tid) {
+								await this.deletedongwuling(this.model_dongwuling.tid)
+						}
+						this.model_dongwuling = {} // reset form
+						await this.refreshdongwulings(dongwuling_m_num)
+					},
+			},
+			computed: {
+					orderedMembers: function () {
+							return _.orderBy(this.members, 'm_num')
+					},
+					filteredRows: function(){
+							// 因為 JavaScript 的 filter 有分大小寫，
+							// 所以這裡將 filter_name 與 rows[n].name 通通轉小寫方便比對。
+							var filter_name = this.filter_name.toLowerCase();
+
+							this.members = _.orderBy(this.members, 'm_num');//先排序
+							// 如果 filter_name 有內容，回傳過濾後的資料，否則將原本的 rows 回傳。
+							return ( this.filter_name.trim() !== '' ) ? 
+									this.members.filter(function(d){ return d.m_num.toLowerCase().indexOf(filter_name) > -1; }) : 
+									_.orderBy(this.members, 'm_num');
+					},
+					pageStart: function(){
+							return (this.currPage - 1) * this.countOfPage;
+					},
+					totalPage: function(){
+							return Math.ceil(this.filteredRows.length / this.countOfPage);
+					},
+					iszhangqiAddOrModify: function(){
+						return this.model_zhangqi.m_num == undefined;
+					},
+					iszhangqiSaveDisabled: function(){
+							return this.model_zhangqi.m_num == undefined || 
+							  (this.model_zhangqi.name == undefined || this.model_zhangqi.name == '');
+					},
+					iszhangqiDeleteDisabled: function(){
+							return this.model_zhangqi.tid == undefined;
+					},
+					ischaojiangerenAddOrModify: function(){
+						return this.model_chaojiangeren.m_num == undefined;
+					},
+					ischaojiangerenSaveDisabled: function(){
+							return this.model_chaojiangeren.m_num == undefined 
+							  || ( this.model_chaojiangeren.name == undefined || this.model_chaojiangeren.name == '' )
+							  || ( this.model_chaojiangeren.addr == undefined || this.model_chaojiangeren.addr == '');
+					},
+					ischaojiangerenDeleteDisabled: function(){
+							return this.model_chaojiangeren.tid == undefined;
+					},
+					ischaojianzuxianAddOrModify: function(){
+						return this.model_chaojianzuxian.m_num == undefined;
+					},
+					ischaojianzuxianSaveDisabled: function(){
+							return this.model_chaojianzuxian.m_num == undefined
+							  || ( this.model_chaojianzuxian.zuxian == undefined || this.model_chaojianzuxian.zuxian == '' )
+							  || (
+									( this.model_chaojianzuxian.name == undefined || this.model_chaojianzuxian.name == '' )
+									&&
+									( this.model_chaojianzuxian.addr == undefined || this.model_chaojianzuxian.addr == '' )
+								 );
+					},
+					ischaojianzuxianDeleteDisabled: function(){
+							return this.model_chaojianzuxian.tid == undefined;
+					},
+					isdijizhuAddOrModify: function(){
+						return this.model_dijizhu.m_num == undefined;
+					},
+					isdijizhuSaveDisabled: function(){
+							return this.model_dijizhu.m_num == undefined
+							  || ( this.model_dijizhu.name == undefined || this.model_dijizhu.name == '' )
+							  || ( this.model_dijizhu.addr == undefined || this.model_dijizhu.addr == '' );
+					},
+					isdijizhuDeleteDisabled: function(){
+							return this.model_dijizhu.tid == undefined;
+					},
+					isyinglingAddOrModify: function(){
+						return this.model_yingling.m_num == undefined;
+					},
+					isyinglingSaveDisabled: function(){
+							return this.model_yingling.m_num == undefined 
+							  || ( this.model_yingling.name == undefined || this.model_yingling.name == '' );
+							  // || ( this.model_yingling.addr == undefined || this.model_yingling.addr == '' );
+					},
+					isyinglingDeleteDisabled: function(){
+							return this.model_yingling.tid == undefined;
+					},
+					isdongwulingAddOrModify: function(){
+						return this.model_dongwuling.m_num == undefined;
+					},
+					isdongwulingSaveDisabled: function(){
+							return this.model_dongwuling.m_num == undefined
+							  || ( this.model_dongwuling.name == undefined || this.model_dongwuling.name == '' );
+							  // || ( this.model_dongwuling.addr == undefined || this.model_dongwuling.addr == '' );
+					},
+					isdongwulingDeleteDisabled: function(){
+							return this.model_dongwuling.tid == undefined;
+					},
+			}
+	})
+</script>
+</html>

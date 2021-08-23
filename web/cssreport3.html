@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>CSS Report</title>
+		<script src="jquery-3.3.1.min.js"></script>
+		<style>
+			/*直書*/
+			.verticle-mode {
+				/*border: 1px solid black;*/
+				top:0;
+				writing-mode: tb-rl;
+				writing-mode: vertical-rl;
+				-webkit-writing-mode: vertical-rl;      
+			}
+			/* IE7比较弱，需要做点额外的动作 */
+			/*.verticle-mode {
+				*width: 120px;
+			}
+			.verticle-mode h4,
+			.verticle-mode p {
+				*display: inline;
+				*writing-mode: tb-rl;
+			}
+			.verticle-mode h4 {
+				*float:right;
+			}*/
+			/*直書*/
+
+			.tba{
+				float:right;
+				border-collapse:collapse;
+				border-spacing:0;
+				table-layout: fixed;
+				overflow: hidden;
+				word-break: break-all;
+				font-size: 14px;
+				margin: 0 15px 0 0;
+			}
+			.tba tr {
+				vertical-align: top;
+			}
+			
+			.tba td {
+				border: 1px solid black;
+			}
+			
+			.tba td div {
+				margin-left: auto; 
+				margin-right: auto
+			}
+			
+			.tba th {
+				border: 1px solid black;
+			}
+
+			.tba_title{
+				width: 200px;
+			}
+			
+			.tba_column{
+				width: 50px;
+				height: 270px;
+			}
+
+			.tba_column1 {			
+			}
+
+			.tba_column2 {
+			}
+
+			.tba_column3 {
+			}
+
+			.tbb{
+				float:right;
+				border-collapse:collapse;
+				border-spacing:0;
+				table-layout: fixed;
+				overflow: hidden;
+				word-break: break-all;
+				font-size: 14px;
+				margin: 0 15px 0 0;
+			}
+			.tbb tr {
+				vertical-align: top;
+			}
+			
+			.tbb td {
+				border: 1px solid black;
+			}
+
+			.tbb th {
+				border: 1px solid black;
+			}
+
+			.tbb_title{
+				width: 200px;
+			}
+			
+			.tbb_column{
+				width: 50px;
+			}
+
+			.tbb_column1 {
+				height: 135px;
+			}
+			
+			.tbb_column1 div{margin-left: auto; margin-right: auto}
+
+			.tbb_column2 {
+				height: 276px;
+			}
+
+			.tbb_column2 div{margin-left: auto; margin-right: auto}
+
+			.tbb_column3 {
+				height: 135px;
+			}
+			
+			.tbb_column3 div{margin-left: auto; margin-right: auto}
+
+			.tbb_column4 {
+				height: 276px;
+			}
+			
+			.tbb_column4 div{margin-left: auto; margin-right: auto}
+
+			.print{
+				position:relative;
+			}
+
+			.table{
+				position: absolute;
+				z-index: 1;
+				border: 1px solid black;
+			}
+
+			@page {
+				/*margin: 1cm;*/ /*print邊界*/ 
+				size: A4; /*列印紙張大小 210mm × 297mm 72 dpi (web) = 595 X 842 pixels */
+			}
+
+			@media print {
+				/*頁碼*/
+				body {  
+					counter-reset: print;   
+				}  
+				.print::after {   
+					position: absolute;  
+					margin: 0 0 -40px 0;
+					top: 900px;  
+					right: 50%;  /* 0 */
+					counter-increment: print;  
+					content: "頁： " counter(print);  
+				}  
+				/*頁碼*/
+			}
+			@media screen {
+			}
+
+			.print{
+				page-break-after:always; /*print分頁面*/
+			}
+		</style>
+	</head>
+	<body>
+		<div class="print">
+			<table class="tba">
+				<tr>
+					<th class="tba_title" colspan="4">照 注 光 佛</th>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column1">
+						<div class="verticle-mode">地址 <span id="tb1_10_1">101010101010台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_10_2">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column1">
+						<div class="verticle-mode">地址 <span id="tb1_7_1">777777777777台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_7_1">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column1">
+						<div class="verticle-mode">地址 <span id="tb1_4_1">444444444444台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_4_2">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column1">
+						<div class="verticle-mode">地址 <span id="tb1_1_1">111111111111台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_1_2">艾諾</span></div>
+					</td>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column2">
+						<div class="verticle-mode">地址 <span id="tb1_11_1">11台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_11_2">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column2">
+						<div class="verticle-mode">地址 <span id="tb1_8_1">8台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_8_1">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column2">
+						<div class="verticle-mode">地址 <span id="tb1_5_1">5台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_5_2">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column2">
+						<div class="verticle-mode">地址 <span id="tb1_2_1">2台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_2_2">艾諾</span></div>
+					</td>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column3">
+						<div class="verticle-mode">地址 <span id="tb1_12_1">12台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_12_2">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column3">
+						<div class="verticle-mode">地址 <span id="tb1_9_1">9台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_9_1">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column3">
+						<div class="verticle-mode">地址 <span id="tb1_6_1">6台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_6_2">艾諾</span></div>
+					</td>
+					<td class="tba_column tba_column3">
+						<div class="verticle-mode">地址 <span id="tb1_3_1">3台中市文心南路一段12號20F</span> <br> 姓名 <span id="tb1_3_2">艾諾</span></div>
+					</td>
+				</tr>
+			</table>
+			<table class="tba">
+				<tr>
+					<th class="tba_title" colspan="4">主 債 親 冤</th>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column1">
+						<div class="verticle-mode">地址 111111111111台中市文心南路一段12號20F <br> 姓名 艾諾</div>
+					</td>
+					<td class="tba_column tba_column1"><div class="verticle-mode">234</div></td>
+					<td class="tba_column tba_column1"><div class="verticle-mode">345</div></td>
+					<td class="tba_column tba_column1"><div class="verticle-mode">456</div></td>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column2"></td>
+					<td class="tba_column tba_column2"></td>
+					<td class="tba_column tba_column2"></td>
+					<td class="tba_column tba_column2"></td>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column3"></td>
+					<td class="tba_column tba_column3"></td>
+					<td class="tba_column tba_column3"></td>
+					<td class="tba_column tba_column3"></td>
+				</tr>
+			</table>
+
+			<table class="tbb">
+				<tr>
+					<td class="tbb_column tbb_column1">
+						<div class="verticle-mode">&nbsp;&nbsp;&nbsp;&nbsp;氏歷代祖先</div>
+					</td>
+					<td class="tbb_column tbb_column1">
+						<div class="verticle-mode">&nbsp;&nbsp;&nbsp;&nbsp;氏歷代祖先</div>
+					</td>
+					<td class="tbb_column tbb_column1"><div class="verticle-mode">345</div></td>
+					<td class="tbb_column tbb_column1"><div class="verticle-mode">456</div></td>
+				</tr>
+				<tr>
+					<td class="tbb_column tbb_column2">
+						<div class="verticle-mode">地址 台中市文心南路一段12號20F <br> 陽上 艾諾</div>
+					</td>
+					<td class="tbb_column tbb_column2">
+						<div class="verticle-mode">地址 111111111111台中市文心南路一段12號20F <br> 陽上 艾諾</div>
+					</td>
+					<td class="tbb_column tbb_column2"></td>
+					<td class="tbb_column tbb_column2"></td>
+				</tr>
+				<tr>
+					<td class="tbb_column tbb_column3">
+						<div class="verticle-mode">&nbsp;&nbsp;&nbsp;&nbsp;氏歷代祖先</div>
+					</td>
+					<td class="tbb_column tbb_column3">
+						<div class="verticle-mode">&nbsp;&nbsp;&nbsp;&nbsp;氏歷代祖先</div>
+					</td>
+					<td class="tbb_column tbb_column3"></td>
+					<td class="tbb_column tbb_column3"></td>
+				</tr>
+				<tr>
+					<td class="tbb_column tbb_column4">
+						<div class="verticle-mode">地址 台中市文心南路一段12號20F <br> 陽上 艾諾</div>
+					</td>
+					<td class="tbb_column tbb_column4">
+						<div class="verticle-mode">地址 111111111111台中市文心南路一段12號20F <br> 陽上 艾諾</div>
+					</td>
+					<td class="tbb_column tbb_column4"></td>
+					<td class="tbb_column tbb_column4"></td>
+				</tr>
+			</table>
+		</div>
+
+		<div class="print">
+			<table class="tba">
+				<tr>
+					<th class="tba_title" colspan="4">1 D C B A</th>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column1">
+						<div class="verticle-mode">地址 台中市文心南路一段12號20F <br> 姓名 艾諾</div>
+					</td>
+					<td class="tba_column tba_column1"><div class="verticle-mode">234</div></td>
+					<td class="tba_column tba_column1"><div class="verticle-mode">345</div></td>
+					<td class="tba_column tba_column1"><div class="verticle-mode">456</div></td>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column2"></td>
+					<td class="tba_column tba_column2"></td>
+					<td class="tba_column tba_column2"></td>
+					<td class="tba_column tba_column2"></td>
+				</tr>
+				<tr>
+					<td class="tba_column tba_column3"></td>
+					<td class="tba_column tba_column3"></td>
+					<td class="tba_column tba_column3"></td>
+					<td class="tba_column tba_column3"></td>
+				</tr>
+			</table>
+		</div>
+
+		<script>
+			var demojson = 
+			'{ "page1" : ' +
+			  '{ "tableA" : [' +
+			      '{ "address":"address1" , "name":"name1" },' +
+			      '{ "address":"address2" , "name":"name2" },' +
+			      '{ "address":"address3" , "name":"name3" } ],' +
+				'"tableb" : [' +
+			      '{ "address":"address1" , "name":"name1" },' +
+			      '{ "address":"address2" , "name":"name2" },' +
+			      '{ "address":"address3" , "name":"name3" } ],' +
+				'"tablec" : [' +
+			      '{ "oldman":"oldman1" , "address":"address1" , "name":"name1" },' +
+			      '{ "oldman":"oldman2" , "address":"address2" , "name":"name2" },' +
+			      '{ "oldman":"oldman3" , "address":"address3" , "name":"name3" } ]' +
+			  '}, ' +
+			  '"page2" : ' +
+			  '{ "tableA" : [' +
+			      '{ "address":"address1" , "name":"name1" },' +
+			      '{ "address":"address2" , "name":"name2" },' +
+			      '{ "address":"address3" , "name":"name3" } ],' +
+				'"tableb" : [' +
+			      '{ "address":"address1" , "name":"name1" },' +
+			      '{ "address":"address2" , "name":"name2" },' +
+			      '{ "address":"address3" , "name":"name3" } ],' +
+				'"tablec" : [' +
+			      '{ "oldman":"oldman1" , "address":"address1" , "name":"name1" },' +
+			      '{ "oldman":"oldman2" , "address":"address2" , "name":"name2" },' +
+			      '{ "oldman":"oldman3" , "address":"address3" , "name":"name3" } ]' +
+			  '} ' +
+			'}';
+
+			var pages = JSON.parse(demojson);
+			Object.keys(pages).forEach(el => {
+
+			})
+
+			/*
+			var startx = "350px";
+			var starty = "30px";
+			var pagey = "1430px";
+			var tableh = "1350px";
+
+			Object.keys(pages).forEach(el => {
+				var i = 1;
+				template = '<div class="table" style="'+
+				           '  left: ' + startx + ';' +
+						   '  top: ' + starty + ';' +
+						   '  height: ' + tableh + ';' +
+						   '  width: 200px;' +
+				           '">11</div>';
+				//$("#print").append(template);
+				starty = parseInt(pagey.replace("px", ""))*i + parseInt(starty.replace("px", "")) + "px;";
+				i++;
+			})
+			*/
+		</script>
+	</body>
+
+</html>
