@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>buddhism</title>
+    <style>
+        .print{
+            position:relative;
+            font-size: 17pt;
+        }
+
+        @page {
+            /*margin: 1cm;*/ /*print邊界*/ 
+            size: A4; /*列印紙張大小 210mm × 297mm 72 dpi (web) = 595 X 842 pixels */
+        }
+
+        @media print {
+            table.table-bordered > thead > tr > th {
+                border:1px solid black !important;
+            }
+            table.table-bordered > tbody > tr > td {
+                border:1px solid black !important;
+            }
+
+            /*頁碼*/
+            body {  
+                counter-reset: print;   
+            }  
+            .print::after {   
+                position: absolute;  
+                margin: 0 0 -40px 0;
+                top: 1460px;  
+                right: 50%;  /* 0 */
+                counter-increment: print;  
+                /*content: "頁： " counter(print);  */
+            }  
+            /*頁碼*/
+        }
+        
+        .print{
+            page-break-after:always; /*print分頁面*/
+        }
+    </style>
+	<script src="js/vue.js"></script>
+	<script src="js/axios.min.js"></script>
+	<script src="js/lodash.min.js"></script>
+    <script src="js/polyfill.min.js"></script>
+    <script src="js/globalVariable.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+<body>
+    <div id="app">
+        <div class="print">
+            <h3 class="text-center">念佛會 三時繫念法會 報名表</h3>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(m, index) in member">
+                    <tr>
+                        <td style="width: 240px;">編號 {{m.m_num}}</td>
+                        <td style="width: 220px;">姓名 {{m.m_name}}</td>
+                        <td>電話 手機 {{m.m_tel}}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">地址 {{m.m_addr}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4>參加項目</h4>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(m, index) in member">
+                    <tr style="height: 47px;">
+                        <td v-if="m.m_diandeng == '1'">點燈</td>
+                        <td v-if="m.m_zhangqi == '1'">消災祈福</td>
+                        <td v-if="m.m_chaojiangeren == '1'">超薦個人</td>
+                        <td v-if="m.m_chaojianzuxian == '1'">超薦祖先</td>
+                        <td v-if="m.m_yingling == '1'">嬰靈</td>
+                        <td v-if="m.m_dijizhu == '1'">地基主</td>
+                        <td v-if="m.m_dongwuling == '1'">動物靈</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4>消災祈福</h4>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(z, index) in colszhangqi">
+                    <tr style="height: 47px;"><td>{{z[0]}}</td><td>{{z[1]}}</td><td>{{z[2]}}</td><td>{{z[3]}}</td><td>{{z[4]}}</td></tr>
+                    <tr style="height: 47px;"><td>{{z[5]}}</td><td>{{z[6]}}</td><td>{{z[7]}}</td><td>{{z[8]}}</td><td>{{z[9]}}</td></tr>
+                    <tr style="height: 47px;"><td>{{z[10]}}</td><td>{{z[11]}}</td><td>{{z[12]}}</td><td>{{z[13]}}</td><td>{{z[14]}}</td></tr>
+                    <tr style="height: 47px;"><td>{{z[15]}}</td><td>{{z[16]}}</td><td>{{z[17]}}</td><td>{{z[18]}}</td><td>{{z[19]}}</td></tr>
+                </tbody>
+            </table>
+            <h4>超薦個人冤親債主</h4>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(zg, index) in chaojiangeren"> 
+                    <tr style="height: 47px;">
+                        <td style="width: 200px;">陽上 {{zg.name}}</td>
+                        <td>地址 {{zg.addr}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4>超薦歷代祖先</h4>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(cz, index) in chaojianzuxian">
+                    <tr style="height: 47px;" v-if="cz.newdead === '0' || cz.newdead === '' ">
+                        <td style="width: 220px;">{{cz.zuxian}}</td>
+                        <td style="width: 220px;">報恩人 {{cz.name}}</td>
+                        <td>地址 {{cz.addr}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(cz, index) in chaojianzuxian">
+                    <tr style="height: 47px;" v-if="cz.newdead === '1'">
+                        <td style="width: 220px;">一年來新亡者</td>
+                        <td style="width: 200px;">陽上 {{cz.name}}</td>
+                        <td>地址 {{cz.addr}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(d, index) in dijizhu">
+                    <tr style="height: 47px;">
+                        <td style="width: 100px;">地基主</td>
+                        <td style="width: 200px;">戶主 {{d.name}}</td>
+                        <td>地址 {{d.addr}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(y, index) in yinglings">
+                    <tr style="height: 47px;">
+                        <td style="width: 100px;">嬰 靈</td>
+                        <td style="width: 200px;">陽上 {{y.name}}</td>
+                        <td>地址 {{y.addr}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <tbody v-for="(dong, index) in dongwuling">
+                    <tr style="height: 47px;">
+                        <td style="width: 100px;">動物靈</td>
+                        <td style="width: 200px;">陽上 {{dong.name}}</td>
+                        <td>地址 {{dong.addr}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div><!--app-->
+</body>
+<script>
+    const client = axios.create({
+		baseURL: customBashUrl,
+		json: true
+	});
+	
+	var app = new Vue({
+        el: '#app',
+        data: {
+            member: [],
+            zhangqi: [],
+            chaojiangeren: [],
+            chaojianzuxian: [],
+            yinglings: [],
+            dijizhu: [],
+            dongwuling: [],
+        },
+        ready: function() {
+                //this.getCustomers()
+        },
+        async created() {
+            this.refreshall()
+        },
+        methods: {
+            async execute (method, resource, data) {
+                return client({
+                    method,
+                    url: resource,
+                    data,
+                    /*headers: {
+                            Authorization: `Bearer ${accessToken}`
+                    }*/
+                }).then(req => {
+                    return req.data
+                })
+            }, 
+            getValue(varname){
+                url = window.location.href
+                qparts = url.split("?")
+                if (qparts.length == 0){return ""}
+                query = qparts[1]
+                vars = query.split("&amp;")
+                value = ""
+                for (i=0; i<vars.length; i++)
+                {
+                    var parts = vars[i].split("=");
+                    if (parts[0] == varname)
+                    {
+                    value = parts[1];
+                    break;
+                    }
+                }
+                value = unescape(value);
+                value.replace(/\+/g," ");
+                return value;
+            },
+            getMember (id) {
+                return this.execute('get', `/members/mun/${id}`)
+            },
+            getzhangqis (id) {
+                return this.execute('get', `/zhangqis/mun/${id}`)
+            },
+            getchaojiangerens (id) {
+                return this.execute('get', `/chaojiangerens/mun/${id}`)
+            },
+            getchaojianzuxians (id) {
+                return this.execute('get', `/chaojianzuxians/mun/${id}`)
+            },
+            getyinglings (id) {
+                return this.execute('get', `/yinglings/mun/${id}`)
+            },
+            getdijizhus (id) {
+                return this.execute('get', `/dijizhus/mun/${id}`)
+            },
+            getdongwulings (id) {
+                return this.execute('get', `/dongwulings/mun/${id}`)
+            },
+            async refreshall() {
+                t_m_num = this.getValue("m_num")
+                this.member = await this.getMember(t_m_num)
+                this.zhangqi = await this.getzhangqis(t_m_num)
+                this.chaojiangeren = await this.getchaojiangerens(t_m_num)
+                this.chaojianzuxian = await this.getchaojianzuxians(t_m_num)
+                this.yinglings = await this.getyinglings(t_m_num)
+                this.dijizhu = await this.getdijizhus(t_m_num)
+                this.dongwuling = await this.getdongwulings(t_m_num)
+            },
+        },
+		computed: {
+            colszhangqi: function() {
+                col = []
+                tcolumn = ["","","","","","","","","","",
+                           "","","","","","","","","","",]
+
+                this.zhangqi.forEach((element, index) => {
+                    tcolumn[index] = element.name
+                });
+                col.push(tcolumn)
+                return col
+            },
+        }
+        
+    })
+
+</script>
+</html>

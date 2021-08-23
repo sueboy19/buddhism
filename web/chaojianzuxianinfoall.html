@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>buddhism</title>
+    <style>
+        .print{
+            position:relative;
+            font-size: 20pt;
+        }
+
+        @page {
+            /*margin: 1cm;*/ /*print邊界*/ 
+            size: A4; /*列印紙張大小 210mm × 297mm 72 dpi (web) = 595 X 842 pixels */
+        }
+
+        @media print {
+            table.table-bordered > thead > tr > th {
+                border:1px solid black !important;
+            }
+            table.table-bordered > tbody > tr > td {
+                border:1px solid black !important;
+            }
+
+            /*頁碼*/
+            body {  
+                counter-reset: print;   
+            }  
+            .print::after {   
+                position: absolute;  
+                margin: 0 0 -40px 0;
+                top: 1470px;  
+                right: 50%;  /* 0 */
+                counter-increment: print;  
+                content: "頁： " counter(print);  
+            }  
+            /*頁碼*/
+        }
+        
+        .print{
+            page-break-after:always; /*print分頁面*/
+        }
+    </style>
+	<script src="js/vue.js"></script>
+	<script src="js/axios.min.js"></script>
+	<script src="js/lodash.min.js"></script>
+    <script src="js/polyfill.min.js"></script>
+    <script src="js/globalVariable.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+<body>
+    <div id="app">
+        <div class="print" v-for="(page, index) in pagechaojianzuxians ">
+            <h3>所有超薦歷代祖先名單</h3> <!-- class="text-center" -->
+            <table class="table table-sm table-bordered" style="table-layout:fixed">
+                <thead>
+                    <tr>
+                        <th scope="col" style="width: 140px;">超薦歷代祖先</th>
+                        <th scope="col" style="width: 400px;">地址</th>
+                        <th scope="col" style="width: 50px;">陽上</th>
+                        <th scope="col" style="width: 100px;">姓名</th>
+                        <th scope="col" style="width: 50px;">拜薦</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="(tpage, index) in page">
+                        <td>{{tpage.zuxian}}</td><td>{{tpage.addr}}</td><td>陽上</td>
+                        <td>{{tpage.name}}</td><td>拜薦</td>
+                    </tr>
+                    
+                </tbody>
+            </table>
+        </div>
+    </div><!--app-->
+</body>
+<script>
+    const client = axios.create({
+		baseURL: customBashUrl,
+		json: true
+	});
+	
+	var app = new Vue({
+        el: '#app',
+        data: {
+            chaojianzuxians: [],
+        },
+        ready: function() {
+                //this.getCustomers()
+        },
+        async created() {
+            this.refreshchaojianzuxians()
+        },
+        methods: {
+            async execute (method, resource, data) {
+                return client({
+                    method,
+                    url: resource,
+                    data,
+                    /*headers: {
+                            Authorization: `Bearer ${accessToken}`
+                    }*/
+                }).then(req => {
+                    return req.data
+                })
+            },
+            getchaojianzuxiansinfoall() {
+                return this.execute('get', `/chaojianzuxiansinfoall`)
+            },
+            async refreshchaojianzuxians() {
+                this.chaojianzuxians = await this.getchaojianzuxiansinfoall()
+            },
+        },
+		computed: {
+            pagechaojianzuxians: function() {
+                /*oldaddr = ""
+                this.chaojianzuxians.forEach((element, index) => {  //去除重覆地址
+                    if(oldaddr != element.addr){
+                        oldaddr = element.addr
+                    }else{
+                        this.chaojianzuxians[index].addr = ""  //地址相同清空
+                    }
+                })*/
+
+                pageRecCount = 26
+                AllPagesCount = Math.floor(this.chaojianzuxians.length/pageRecCount) +1 //一頁30筆資料
+                pagesCount = 0
+                allpages = []
+                page = [{},{},{},{},{},{},{},{},{},{},
+                        {},{},{},{},{},{},{},{},{},{},
+                        {},{},{},{},{},{},{},]
+                
+                this.chaojianzuxians.forEach((element, index) => {
+                    tindex = index - (pageRecCount * pagesCount) +1 //符合陣列第1筆開始
+                    //console.log("tindex", tindex, index, pagesCount)
+                    pageIndex = tindex
+                    page[pageIndex]=element
+                    
+                    if(tindex == pageRecCount){ //每頁輸出
+                        pagesCount++
+                        page.shift()  //去掉第一個page[0]，因為是從1填值，所以0
+                        allpages.push(page)
+                        /*console.log("pagescount", pagesCount)
+                        console.log("pageleft", pageLeft)
+                        console.log("pagesright", pageRight)
+                        console.log("page", page)*/
+                        page = [{},{},{},{},{},{},{},{},{},{},
+                                {},{},{},{},{},{},{},{},{},{},
+                                {},{},{},{},{},{},{},]
+                    }
+                });
+                page.shift()  //去掉第一個page[0]，因為是從1填值，所以0
+                allpages.push(page)
+
+                console.log("allpages", allpages)
+                return allpages
+            },
+            orderedzhangqis: function() {
+                return _.orderBy(this.zhangqis, 'm_num')
+            },
+            filteredRows: function(){
+                var filter_name = this.filter_name.toLowerCase();
+
+                return ( this.filter_name.trim() !== '' ) ? 
+                    this.zhangqis.filter(function(d){ return d.m_num.toLowerCase().indexOf(filter_name) > -1; }) : 
+                    _.orderBy(this.zhangqis, 'm_num');
+            },
+        }
+        
+    })
+
+</script>
+</html>

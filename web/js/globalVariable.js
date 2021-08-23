@@ -1,0 +1,1 @@
+var customBashUrl = "http://localhost/";

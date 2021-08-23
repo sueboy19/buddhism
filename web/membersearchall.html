@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>buddhism</title>
+	<script src="js/vue.js"></script>
+	<script src="js/axios.min.js"></script>
+	<script src="js/lodash.min.js"></script>
+    <script src="js/polyfill.min.js"></script>
+    <script src="js/bootstrap-vue.js"></script>
+    <script src="js/globalVariable.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-vue.css">
+</head>
+<body>
+    <div id="app">
+        <b-input-group prepend="搜尋會員">
+            <b-form-input v-model="filter_keywork" placeholder="請輸入任意關鍵字"></b-form-input>
+            <b-input-group-append>
+                <b-btn size="sm" text="Button" variant="info" @click.prevent="filter_keywork=''">清除</b-btn>
+            </b-input-group-append>
+        </b-input-group>
+        <b-table striped hover :items="results" :fields="fields"></b-table>
+    </div><!--app-->
+</body>
+<script>
+    const client = axios.create({
+		baseURL: customBashUrl,
+		json: true
+	});
+	
+	var app = new Vue({
+        el: '#app',
+        data: {
+            fields: {
+                m_num: {
+                    label: '會員編號',
+                    sortable: true
+                },
+		m_name: {
+                    label: '會員名字',
+                    sortable: true
+                },
+                title: {
+                    label: '項目',
+                    sortable: true
+                },
+            },
+            filter_keywork: '',
+            results: [],
+        },
+        ready: function() {
+                //this.getCustomers()
+        },
+        async created() {
+            this.refreshall()
+        },
+        methods: {
+            async execute (method, resource, data) {
+                return client({
+                    method,
+                    url: resource,
+                    data,
+                    /*headers: {
+                            Authorization: `Bearer ${accessToken}`
+                    }*/
+                }).then(req => {
+                    return req.data
+                })
+            }, 
+            getmembersearchall (id) {
+                return this.execute('get', `/membersearchall/${id}`)
+            },
+            async refreshall() {
+                //this.member = await this.getmembersearchall(this.searchkeywork)
+            },
+            async filteredRows(){
+                //var filter_keywork = this.filter_keywork.toLowerCase();
+                if( this.filter_keywork.trim() !== '' ){
+                    this.results = await this.getmembersearchall(this.filter_keywork)
+                }
+            },
+        },
+        watch: {
+            filter_keywork: function(val){
+                this.filteredRows()
+            }
+         }, 
+		
+    })
+
+</script>
+</html>
