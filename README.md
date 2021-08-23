@@ -7,7 +7,7 @@
 
 ## 運行方式
 1. 自行 Compiler 產生 main.exe，產生後先執行 main.exe  
-2. 執行瀏灠器輸入 http://localhost/ 
+2. 執行瀏灠器輸入 http://localhost:8081/ 
 
 ## 系統使用
 1. Vue.js v2.5.16
