@@ -10,7 +10,7 @@
 2. 執行瀏灠器輸入 http://localhost:8081/ 
 
 ## 系統使用
-1. Vue.js v2.5.16
+1. Vue.js v2.6.14
 2. Bootstrap v4.1.1
 3. Bootstrap-vue
 4. golang
