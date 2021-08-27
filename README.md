@@ -13,7 +13,7 @@
 1. Vue.js v2.6.14
 2. Bootstrap v4.1.1
 3. Bootstrap-vue
-4. golang
+4. golang 1.16
 5. sqlite
 
 ## Golang Sqlite Compiler
