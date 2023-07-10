@@ -497,6 +497,7 @@
 							this.loading = false
 					},
 					async populateMemberToAdd () {
+							this.model = {} // reset form
 							this.$refs.memberAddRef.show()
 					},
 					async populateMemberToEdit (member) {
