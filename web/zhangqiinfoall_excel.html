@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>buddhism</title>
+
+    <script src="js/vue.js"></script>
+	<script src="js/axios.min.js"></script>
+	<script src="js/lodash.min.js"></script>
+    <script src="js/polyfill.min.js"></script>
+    <script src="js/globalVariable.js"></script>
+    <script src="js/shim.min.js"></script>
+    <script src="js/xlsx.full.min.js"></script> <!-- This script assigns to window.XLSX. The global can be used in other scripts. -->
+    
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+<body>
+    <div id="app">
+    </div>
+</body>
+   
+<script>
+    const client = axios.create({
+        baseURL: 'http://localhost:8081',
+        json: true
+    });
+    
+    var app = new Vue({
+        el: '#app',
+        data: {
+            zhangqis: [],
+            //pagezhangqis: [],
+        },
+        ready: function() {
+                //this.getCustomers()
+        },
+        async created() {
+            this.refreshzhangqis()
+        },
+        methods: {
+            async execute (method, resource, data) {
+                return client({
+                    method,
+                    url: resource,
+                    data,
+                    /*headers: {
+                            Authorization: `Bearer ${accessToken}`
+                    }*/
+                }).then(req => {
+                    return req.data
+                })
+            },
+            getzhangqisinfoall() {
+                return this.execute('get', `/zhangqisinfoall`)
+            },
+            async refreshzhangqis() {
+                this.zhangqis = await this.getzhangqisinfoall()
+                console.log(this.zhangqis)
+
+                /* dynamically import the scripts in the event listener */
+                /*
+                const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
+                const cptable = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/cpexcel.full.mjs");
+                XLSX.set_cptable(cptable);
+                */
+
+                oldaddr = ""
+                row_content = [];
+                xlsx_content = [['地址', '人名']];
+
+                this.zhangqis.forEach((element, index) => {
+                    const current_addr = element.m_addr.trim();
+                    
+                    if (index === 0 || oldaddr !== current_addr) {
+                        if (index !== 0) {
+                            xlsx_content.push(row_content);
+                        }
+                        oldaddr = current_addr;
+                        row_content = [oldaddr];
+                    }
+                    
+                    row_content.push(element.name.trim());
+                });
+                
+                // Push the last row content if it exists
+                if (row_content.length > 1) {
+                    xlsx_content.push(row_content);
+                }
+
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(xlsx_content);
+                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+                XLSX.writeFile(wb, "所有會員消災祈福Excel.xlsx");
+            },
+        },
+    })
+</script>
+
+</html>
